@@ -27,15 +27,18 @@
 
 <p align="center">
 <img src="Images and GIFs\border.gif" />
+</p>
 
-<em>Game Over Because Snake runs into the Border</em>
+<p align="center">
+Game Over Because Snake runs into the Border
 </p>
 
 <p align="center">
 <img src="Images and GIFs\self.gif"/>
+</p>
 
-<em>Game Over Because Snake runs into itself</em>
-
+<p align="center">
+Game Over Because Snake runs into itself
 </p>
 
 ## **Adaptive Game Refresh Rate**
