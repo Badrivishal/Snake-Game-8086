@@ -27,11 +27,13 @@
 
 <p align="center">
 <img src="Images and GIFs\border.gif" />
+
 <em>Game Over Because Snake runs into the Border</em>
 </p>
 
 <p align="center">
 <img src="Images and GIFs\self.gif"/>
+
 <em>Game Over Because Snake runs into itself</em>
 
 </p>
