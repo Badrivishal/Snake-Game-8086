@@ -3,8 +3,8 @@ data segment
     foodx   db  1               ; x-coord of food
     foody   db  15              ; y-coord of food
     
-    snakex  db  20  dup(?)      ; array of x coords of snake
-    snakey  db  20  dup(?)      ; array of y coords of snake
+    snakex  db  25  dup(?)      ; array of x coords of snake
+    snakey  db  25  dup(?)      ; array of y coords of snake
     
     tailx   db  ?               ; x-coord of tail of snake
     taily   db  ?               ; y-coord of tail of snake
@@ -40,9 +40,11 @@ start:
     
     MOV     len,    2           ; Initialize length of snake to 2
     
+    ; Creating the default snake with the snake positions
+
     MOV SI, offset snakex       ; snake inital positions (15, 15) (15, 16)
-    MOV AL, 15
-    MOV [SI], AL
+    MOV AL, 15                  
+    MOV [SI], AL                
     INC SI
     MOV [SI], AL
     
@@ -56,21 +58,34 @@ start:
     MOV AL, 03H                 ; with ascii/text 80x25
     INT 10H         
     
-    call make_border
-    call print_score               
-    call print_food
-    call update_snake  
+    ; Initialising the Game Environment
+
+    call make_border            ; Draws the Border of the game
+    call print_score            ; Prints the score at the top right corner
+    call print_food             ; Prints Food
+    call update_snake           ; Updates the snake array and calls print snake on the upadated array
+    
+    ; Life Cycle of the Game
     
     here:
-    call check_direc
-    call update_snake 
-    call print_food
+    call check_direc            ; checks the keystroke for a direction update
+    call update_snake           ; updates snake
+    call print_food             ; prints food randomly
     
-    MOV DX, 10                  ; change the speed of snake
+    ; Creating an approximate delay of 0.2 secs
+    
+    ; MOV DX, 12                ; change the speed of snake
+    MOV AX, len
+    MOV DL, 2                   ; change with respect to score 
+    DIV DL
+    MOV AH, 0
+    NEG AX
+    ADD AX, 12
+    MOV DX, AX
     delay:
     
     MOV CX, 0FFFFH              ; delay to slow the motion of snake
-    del: loop del
+    del: loop del 
     
     DEC DX
     jnz delay
@@ -80,9 +95,9 @@ start:
           
     check_self proc             ; iterates through the length of the snake array and checks whether
         MOV AL, snakex          ; the snake is biting itself
-        MOV AH, snakey
+        MOV AH, snakey          ; AL, AH gets the head values
         
-        MOV SI, offset snakex
+        MOV SI, offset snakex   ; SI, DI are iterater for the array
         MOV DI, offset snakey
         
         INC SI
@@ -91,9 +106,9 @@ start:
         MOV CX, len
         DEC CX
         chk_x:
-            cmp AL, [SI]
-            jz chk_y
-            jmp cont        
+            cmp AL, [SI]        ; checks the x coord
+            jz chk_y            ; checks the y coord if x is matched
+            jmp cont            ; continues if not same
             
                     
         chk_y: 
@@ -255,13 +270,13 @@ start:
         ADD SI, len    
         DEC SI
         MOV AL, [SI]
-        MOV tailx, AL
+        MOV tailx, AL           ; Updates the tailx
         
         MOV SI, offset snakey
         ADD SI, len    
         DEC SI
         MOV AL, [SI]
-        MOV taily, AL
+        MOV taily, AL           ; Updates the taily
         
         MOV DX, len
 
@@ -319,7 +334,7 @@ start:
         upd:                        ; update the snake and check if it is eating the food or bititng itself
            call check_border        ; or biting the border.
            call check_self
-           MOV AL, foodx
+           MOV AL, foodx            ; Checks if it is eating the food
            cmp AL, snakex
            jz chky
            jmp prt
@@ -350,10 +365,11 @@ start:
 
             MOV taildel, 1          ; taildel parameter set to 1 such that tail is not deleted in this case
                           
-            ; Randomizing the food generation
+            ; Randomizing the food generation with a probability of 0.00058 so that the gamers dont get lucky
 
             MOV AH, 00h             ; Create a Random number using the system time.
-            INT 1AH                 ; CX:DX will contain the number of clock ticks since midnight.           
+            INT 1AH                 ; CX:DX will contain the number of clock ticks since midnight.       
+                                    ; 1258 4751, 1258 4752, 1258 4753    
             
             xor  cx, dx             ; CX xor DX will result in a random number
             and cx, 00111111b       ; reduced the size of the number for division
@@ -369,7 +385,7 @@ start:
             xor  cx, dx        
             and cx, 00111111b
             mov  ax, cx 
-            MOV BL, 016H            ; number divided with 78 so as the mod will have number between 0 to 21  (y coord)
+            MOV BL, 016H            ; number divided with 22 so as the mod will have number between 0 to 21  (y coord)
             div BL     
             INC AH
             INC AH                  ; removing border to get number between 2 to 23
@@ -384,7 +400,7 @@ start:
     print_food proc             ; prints the food according to foodx and foody
         LEA SI, foodx
         LEA DI, foody
-        GOTOXY [SI], [DI]      
+        GOTOXY [SI], [DI]      ; REcheck
         GOTOXY foodx, foody      
         MOV AH, 09H
         MOV AL, 220
@@ -414,7 +430,7 @@ start:
             jnz l1  
         
         cmp taildel, 1          ; removes tail if taildel == 0 
-        jz tailrem              ; else keeps the tail
+        jz tailkeep              ; else keeps the tail
     
         GOTOXY tailx, taily     ; remove tail
         MOV AH, 09H 
@@ -426,7 +442,7 @@ start:
         
         jmp retval    
         
-        tailrem:
+        tailkeep:
         mov taildel, 0 
         call print_score        ; once tail is removed new score is printed and new food is printed
         call print_food 
